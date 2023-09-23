@@ -41,6 +41,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
           ])
         }
       })
+    case 'getStoredData':
+      return await snap.request({
+        method: 'snap_manageState',
+        params: { operation: 'get' }
+      })
     default:
       throw new Error('Method not found.');
   }

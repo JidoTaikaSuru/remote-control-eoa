@@ -4,6 +4,7 @@ import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   connectSnap,
   getSnap,
+  getSnapStoredData,
   isLocalSnap,
   sendClearHistory,
   sendHello,
@@ -16,6 +17,7 @@ import {
   SendHelloButton,
   Card,
   ClearHistoryButton,
+  GetSnapStoredDataButton,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
 
@@ -143,6 +145,16 @@ const Index = () => {
     }
   }
 
+  const handleGetSnapStoredData = async () => {
+    try {
+      const data = await getSnapStoredData();
+      console.log('Stored data:', data)
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  }
+
   return (
     <Container>
       <Heading>
@@ -226,6 +238,24 @@ const Index = () => {
             button: (
               <ClearHistoryButton
                 onClick={handleClearHistoryClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Get snap stored data',
+            description: 'Get the data stored on this MetaMask Snap.',
+            button: (
+              <GetSnapStoredDataButton
+                onClick={handleGetSnapStoredData}
                 disabled={!state.installedSnap}
               />
             ),

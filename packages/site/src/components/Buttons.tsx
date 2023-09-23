@@ -128,3 +128,7 @@ export const HeaderButtons = ({
 export const ClearHistoryButton = (props: ComponentProps<typeof Button>) => {
   return <Button {...props}>Clear snap storage</Button>;
 };
+
+export const GetSnapStoredDataButton = (props: ComponentProps<typeof Button>) => {
+  return <Button {...props}>Get stored data</Button>;
+};
