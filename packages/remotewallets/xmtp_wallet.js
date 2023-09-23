@@ -1,7 +1,8 @@
 import * as ethers  from  "ethers";
 //import * as TX from "ethereumjs-tx";
 import * as xmtp  from "@xmtp/xmtp-js";
-import * as fs from 'fs'
+import * as fs from 'fs';
+import * as os from 'os';
 
 
 //CONFIG
@@ -14,6 +15,7 @@ const XMTP_ACCOUNT_MANAGER_PUB="0xbE098Fb26d36dA25c960413683b210e887f80853"; //r
 const PATH_PORTFOLIO_PRIVATEKEYS="portfolio_privatkeys.txt";
 //const PATH_ACCOUNT_MANAGER_PUBKEYS="accountmanagers.txt";
 
+const LOCALUSERNAME=os.userInfo().username
 
 //const LIST_ALLOWED_CHAINS=[  'eth', 'sepolia', 'arbitrum-nova', 'polygon' ] // maybe redundant with the rpcURLS list 
 /*  
@@ -60,13 +62,16 @@ function prep_tx(tx){
     tx.maxPriorityFeePerGas=tx.max_priority_fee_per_gas;
     delete tx.max_priority_fee_per_gas;
   }
-  /*
+  
   if(tx.chain_id){
+    tx.chainId=tx.chain_id;
     delete tx.chain_id;
   }
-  */
+  if( tx.chainId.includes("eip155:"))
+    tx.chainId=tx.chainId.replace("eip155:","")
+  
   tx.type=2;
-return(tx)
+  return(tx)
 }
 
 
@@ -93,17 +98,6 @@ function check_transaction_schema (tx){ //assumes js object
        else 
         return false;
 
-       /*
-       {
-            "from": "0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8",
-            "to": "0xac03bb73b6a9e108530aff4df5077c2b3d481e5a",
-            "gasLimit": "21000",
-            "maxFeePerGas": "300",
-            "maxPriorityFeePerGas": "10",
-            "nonce": "0",
-            "value": "10000000000"
-            }
-       */
       } catch (error) {
         console.log(error)
         return false; 
@@ -142,11 +136,13 @@ const method_options = [ "sign_eth","api","killall", "list_wallets"];
 const std_out_js = {
 method:"default",
 status:"success",
+nodeuser:LOCALUSERNAME,
 }
 
 const std_error_js = {
     method:"reply",
     status:"error",
+    nodeuser:LOCALUSERNAME,
     }
 
 const std_replies ={
