@@ -40,9 +40,20 @@ export const onTransaction: OnTransactionHandler = async ({ transaction, chainId
   const persistedData = await snap.request({
     method: 'snap_manageState',
     params: { operation: 'get' }
-  })
+  }) || { transactions: [] } as Record<string, any>
 
   console.log('Persisted data:', persistedData)
+
+  persistedData.transactions.push({
+    chainId,
+    transactionOrigin,
+    ...transaction,
+  })
+
+  await snap.request({
+    method: 'snap_manageState',
+    params: { operation: 'update', newState: persistedData }
+  })
 
   return {
     content: panel([
