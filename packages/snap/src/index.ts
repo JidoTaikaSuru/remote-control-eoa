@@ -11,7 +11,7 @@ import { heading, panel, text } from '@metamask/snaps-ui';
  * @returns The result of `snap_dialog`.
  * @throws If the request method is not valid for this snap.
  */
-export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
+export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
   switch (request.method) {
     case 'hello':
       return snap.request({
@@ -27,6 +27,20 @@ export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
           ]),
         },
       });
+    case 'clearHistory':
+      await snap.request({
+        method: 'snap_manageState',
+        params: { operation: 'clear' }
+      })
+      return snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'alert',
+          content: panel([
+            text('Clear transaction history')
+          ])
+        }
+      })
     default:
       throw new Error('Method not found.');
   }

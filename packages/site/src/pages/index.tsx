@@ -5,6 +5,7 @@ import {
   connectSnap,
   getSnap,
   isLocalSnap,
+  sendClearHistory,
   sendHello,
   shouldDisplayReconnectButton,
 } from '../utils';
@@ -14,6 +15,7 @@ import {
   ReconnectButton,
   SendHelloButton,
   Card,
+  ClearHistoryButton,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
 
@@ -132,6 +134,15 @@ const Index = () => {
     }
   };
 
+  const handleClearHistoryClick = async () => {
+    try {
+      await sendClearHistory();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  }
+
   return (
     <Container>
       <Heading>
@@ -197,6 +208,24 @@ const Index = () => {
             button: (
               <SendHelloButton
                 onClick={handleSendHelloClick}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Clear transction history',
+            description: 'Clear the MetaMask Snap of the recorded transaction history.',
+            button: (
+              <ClearHistoryButton
+                onClick={handleClearHistoryClick}
                 disabled={!state.installedSnap}
               />
             ),
