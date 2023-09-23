@@ -5,6 +5,10 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as config from './config.js';
 
+import * as chainlist from 'eth-chainlist';  //or https://www.npmjs.com/package/evm-chains //import * as evnChains from 'evm-chains';
+
+
+
 /*   
 
 
@@ -43,36 +47,25 @@ The signed transaction should be sent back as a reply or a JSON object that cont
 //CONFIG
 const XMTP_LISTENER_PRIVATEKEY=process.env.XMTP_LISTENER_PRIVATEKEY ||  config.XMTP_LISTENER_PRIVATEKEY;
 if(XMTP_LISTENER_PRIVATEKEY.length<10){
-  console.log("Faital error,  XMTP_LISTENER_PRIVATEKEY not set.  Can be set as env variable via export in cmd or set in config.js ")
-  process.exit();
-
-}
-const XMTP_LISTENER_PUB="0xf8d34981a0258898893f516e7BB094b8433A9680";
+    console.log("Faital error,  XMTP_LISTENER_PRIVATEKEY not set.  Can be set as env variable via export in cmd or set in config.js ")
+    process.exit();
+  
+  }
+const XMTP_LISTENER_PUB=process.env.XMTP_LISTENER_PUB || config.XMTP_LISTENER_PUB || "0xf8d34981a0258898893f516e7BB094b8433A9680";
 
 //const XMTP_ACCOUNT_MANAGER_PUB="0xA00c50A0A97D7b4d03e7Ff4A8C1badf61d72816f"; //RWO doxed wallet 
-const XMTP_ACCOUNT_MANAGER_PUB="0xbE098Fb26d36dA25c960413683b210e887f80853"; //random other wallet 
+const XMTP_ACCOUNT_MANAGER_PUB= process.env.XMTP_ACCOUNT_MANAGER_PUB || config.XMTP_ACCOUNT_MANAGER_PUB ||"0xbE098Fb26d36dA25c960413683b210e887f80853"; //random other wallet 
 
 
 const PATH_PORTFOLIO_PRIVATEKEYS="portfolio_privatkeys.txt";
-//const PATH_ACCOUNT_MANAGER_PUBKEYS="accountmanagers.txt";
+//const PATH_ACCOUNT_MANAGER_PUBKEYS="accountmanagers.txt"; // for now just 1 manager 
 
 const LOCALUSERNAME=os.userInfo().username
-
-//const LIST_ALLOWED_CHAINS=[  'eth', 'sepolia', 'arbitrum-nova', 'polygon' ] // maybe redundant with the rpcURLS list 
-/*  
-const RPC_URLS  = { // maybe don't even need this b/c all we do is sign here 
-    'eth': 'https://eth-mainnet.g.alchemy.com/v2/ac6tkabLEdTV4E7M17AbEzWSQuq7SWRa',
-    'sepolia': 'https://sepolia.infura.io/v3/febe4f1122fd42b3ad2f55b0264ce3bf',
-    'arbitrum-nova': 'https://nova.arbitrum.io/rpc',
-    'polygon': `https://polygon-mainnet.g.alchemy.com/v2/ac6tkabLEdTV4E7M17AbEzWSQuq7SWRa`,
-}
-*/ 
-//end Config
-
+ 
 
 
 const portfolioPrivateKeys = fs.readFileSync(PATH_PORTFOLIO_PRIVATEKEYS, 'utf-8').split('\n').map(x=>x.trim()).filter(x=>x!=='');
-//const accountmanagers = fs.readFileSync(PATH_ACCOUNT_MANAGER_PUBKEYS, 'utf-8').split('\n').map(x=>x.trim()).filter(x=>x!=='');
+ 
 const portfolioWallets = portfolioPrivateKeys.map( key=> new ethers.Wallet(key ) )
 
 const portfolioWallets_dict = {};
@@ -80,16 +73,83 @@ portfolioWallets.forEach(w => {
     portfolioWallets_dict[w.address]=w;
 });   
 
+  
 
-//first wallet pubkey =  0xbE098Fb26d36dA25c960413683b210e887f80853  // 
-const first_portfolioWallets=portfolioWallets[0];
+//let selected_rpc_url={};
+let working_rpc_providers={};
+
+async function  checkChainList(chainId,trycount){
+    const found_chainlists=chainlist.getChainById(chainId);
+ 
+    if( found_chainlists.rpc[trycount]=== undefined ){
+     throw new Error('ChainList didnt find a network for chainid '+chainId+" idx "+trycount); 
+    }
+    const provider = new ethers.providers.JsonRpcProvider(found_chainlists.rpc[trycount]);
+    const a2 = await provider.getTransactionCount(XMTP_LISTENER_PUB, "pending")
+    console.log(" testing chainlist Provider with getTransactionCount="+a2)
+    return provider;
+
+}
+async function getKnownRPC(chainId){
+    chainId=Number(chainId);
+    let outProvider ;
+    if(working_rpc_providers.hasOwnProperty(chainId) ){
+        return working_rpc_providers[chainId];
+    }
+    try{
+       
+        if( config.CHAIN_ID_TO_RPC_URL.hasOwnProperty(chainId)){
+            outProvider= new ethers.providers.JsonRpcProvider(config.CHAIN_ID_TO_RPC_URL[chainId])
+            const a2 = await outProvider.getTransactionCount(XMTP_LISTENER_PUB, "pending")
+            console.log(" testing Configured Provider with getTransactionCount="+a2)
+        }
+        else if(config.INFURA_API_KEY && config.INFURA_API_KEY.length>10 ){
+            outProvider= new ethers.providers.InfuraProvider(chainId,config.INFURA_API_KEY);
+            const a2 = await outProvider.getTransactionCount(XMTP_LISTENER_PUB, "pending")
+            console.log(" testing Infura Provider with getTransactionCount="+a2)
+        }
+        else if ( config.ALCHEMY_API_KEY &&  config.ALCHEMY_API_KEY.length>10){
+            outProvider= new ethers.providers.AlchemyProvider(chainId,config.ALCHEMY_API_KEY);
+            const a2 = await outProvider.getTransactionCount(XMTP_LISTENER_PUB, "pending")
+            console.log(" testing Alchemy Provider with getTransactionCount="+a2)
+        } 
+        else {
+            const outProvider = await checkChainList(chainId,0);
+        }
+        
 
 
+    }
+    catch(error){
+        console.log("try 1 error:"+error)
+        try{ 
+           outProvider = await checkChainList(chainId,0);
+        }
+        catch(error2){
+            console.log("try 2 error:"+error2)
+            try { 
+                outProvider = await checkChainList(chainId,1);
+            }
+            catch(error3){
+                console.log("try 3 error:"+error3)
+                try { 
+                outProvider = await checkChainList(chainId,2);
+                } 
+                catch(error4){
+                    console.log("try 4 error:"+error4)
+                    outProvider = await checkChainList(chainId,3);
+                }
+            }
+        }
+    }
+    finally{
+        if(outProvider!== undefined && outProvider!== null )
+            working_rpc_providers[chainId]=outProvider;
+        return outProvider;
+    }
 
-
-//TODO make this an input from the user, or have a big library preconfigured 
-const provider = new ethers.providers.JsonRpcProvider("https://sepolia.infura.io/v3/febe4f1122fd42b3ad2f55b0264ce3bf")
-
+}
+   
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -114,9 +174,13 @@ async function prep_tx(tx){
   }
   if(tx.hasOwnProperty('chainId') && tx.chainId.includes("eip155:"))
     tx.chainId=tx.chainId.replace("eip155:","")
-  if( !tx.hasOwnProperty('nonce') ){
-    tx.nonce=   await provider.getTransactionCount(tx.from, "pending")
+ 
+
+  if(!tx.hasOwnProperty('nonce')){
+    const localprovider=await getKnownRPC(tx.chainId);
+    tx.nonce = await localprovider.getTransactionCount(tx.from, "pending");
   }
+
   tx.type=2;
   return(tx)
 }
@@ -154,29 +218,37 @@ function check_transaction_schema (tx){ //assumes js object
 
 let last_id_i_sent='';
 async function xSendUtil(convo,message){
+    if(typeof message === 'object'){
+        message=JSON.stringify(message);
+    }
     let res = await convo.send(message);
     last_id_i_sent=res.id;
 }
 
+ 
+async function xSignUtil(conversation,clean_tx){
 
-/*
-{
-  "from":"0xbE098Fb26d36dA25c960413683b210e887f80853",
-  "to":"0x7b79995e5f793a07bc00c21412e50ecae098e7f9",
-  "value":"0x2386f26fc10000",
-  "data":"0xd0e30db0",
-  "gas":"0xa2f3",
-  "max_fee_per_gas":"0xb7263fdc",
-  "max_priority_fee_per_gas":"0x59682f00",
-  "chain_id":"eip155:11155111",
-  "origin":"https://sepolia.etherscan.io"
+    if(check_transaction_schema(clean_tx)){
+        if( portfolioWallets_dict[clean_tx.from]){
+        const signedTX= await portfolioWallets_dict[clean_tx.from].signTransaction(clean_tx);
+ 
+        await xSendUtil(conversation,JSON.stringify( {...std_out_js,method:"reply_sign",signed:signedTX }));
+        return signedTX;
+        }
+        else {
+          const erstr2=msg_js.body.from+"wallet not under managment";
+          throw new Error(erstr2); 
+        }
+    }
+    else{ 
+      throw new Error("Not Valid Transaction Format"); 
+    }
+
 }
-
-*/
 
  1===1; 
 
-const method_options = [ "sign_eth","api","killall", "list_wallets"];
+const method_options = [ "sign_eth","api","killall", "list_methods", "list_wallets","sign_and_send_eth"];
 
 const std_out_js = {
 method:"default",
@@ -192,7 +264,8 @@ const std_error_js = {
 
 const std_replies ={
     error:"error",
-    bad_json:"bad_json"
+    bad_json:"bad_json",
+    reply_sign_eth:"reply_sign_eth",
 }
 
 
@@ -205,11 +278,10 @@ while(true){
  await xSendUtil(conversation,"hello world");
 
 
+ let current_provider;
 for await (const message of await conversation.streamMessages()) {
   
   try { 
-
-
     if(message.id===last_id_i_sent){
         console.log("skip message");
         continue;
@@ -218,40 +290,42 @@ for await (const message of await conversation.streamMessages()) {
         console.log("skip message");
         continue;
     }
-  
+    if( !( message.senderAddress===XMTP_ACCOUNT_MANAGER_PUB ||   message.senderAddress===XMTP_LISTENER_PUB ))
+        continue;
+
     console.log(`[${message.senderAddress}]: ${message.content}`);
-    let msg_js =  JSON.parse(message.content.replace(/(\r\n|\n|\r)/gm, ""))
-    if( ( message.senderAddress===XMTP_ACCOUNT_MANAGER_PUB ||   message.senderAddress===XMTP_LISTENER_PUB ) && msg_js.method){
+    let msg_js;
+    if( method_options.includes(message.content))  //to allow small methods to be send without wrapping json
+        msg_js={ method:message.content }
+    else 
+        msg_js =  JSON.parse(message.content.replace(/(\r\n|\n|\r)/gm, ""))
 
-
-      
+    if( msg_js.hasOwnProperty('method') ){
 
       switch (msg_js.method) {
         case 'sign_eth':
           let tx_js = msg_js.body  
           const clean_tx = await prep_tx(tx_js);
-          if(check_transaction_schema(clean_tx)){
-              if( portfolioWallets_dict[msg_js.body.from]){
-              const signedTX= await portfolioWallets_dict[msg_js.body.from].signTransaction(clean_tx);
-              //const signedTX= await first_portfolioWallets.signTransaction(clean_tx);
+          await xSignUtil(conversation,clean_tx);
+        break;
+        case 'sign_and_send_eth':
+            const clean_tx2 = await prep_tx( msg_js.body );
+            const signedTx = await xSignUtil(conversation,clean_tx2);
+            current_provider= await getKnownRPC(clean_tx2.chainId);
+            try {
+                const send_resp = await current_provider.sendTransaction(signedTx);
+                await xSendUtil(conversation, JSON.stringify({...std_out_js, tx_hash_onchain:send_resp.hash } ));
+            } 
+            catch(error_send){
+                console.log("sendTransaction Error: "+ error_send)
+                await xSendUtil(conversation, JSON.stringify({...std_error_js, error_message:error_send } ));
+            }
 
-              let reply = std_out_js;
-              reply.method="reply_"+msg_js.method;
-              reply.signed=signedTX;
-              await xSendUtil(conversation,JSON.stringify(reply));
-              }
-              else {
-                const erstr2=msg_js.body.from+"wallet not under managment";
-                console.log(erstr2);
-                await xSendUtil(conversation,erstr2);
-                continue;
-              }
-          }
-          else{
-            await xSendUtil(conversation,"Not Transaction Format");
-          }
-          break;
-
+        break;
+        
+        case "list_methods":
+            await xSendUtil(conversation,{...std_out_js,list_methods:method_options});
+        break;
 
         case 'killall':
             if(  message.senderAddress===XMTP_LISTENER_PUB   ){
