@@ -5,9 +5,49 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as config from './config.js';
 
+/*   
+
+
+
+//Next TODO   build out   provider methods, provider options changing, option to include provider on every message. 
+
+-- To define which wallet should sign something we should be able to just take the from:  address in the transaction. 
+-- Design,  single thread while loop listening to new messages .
+-- (On startup should check if in recent history there where some transactions that didn't get signed and then sign them) <- na who cares 
+The signed transaction should be sent back as a reply or a JSON object that contains the original request metadata with message ID etc. 
+-- Let a user login to the conversation to watch interactions. Via convers app 
+-- In the loop that reads messages we can also watch for messages to control the system. Like adding new account managers.  Or allowing 
+    ++ Alt option would be to put the control in another channel.  But then we gotta have multi threading....  and multi account config.. ( what happens if the process gets blocked by something... well it can't get blocked. Settings chagnes must happen immediatly can't require multiple steps. )
+
+? Does this history of messages actually matter ?  No not really the operator can check if it went threw and manually have retry code on the outside. 
+-- What if we want to drop out xmtp and go http only again  <- this could be done pretty easily by having an http request to local host messaging an http server that does everything OOOOOR even better would be the abstract all the work into a class with functions like New message arrived, And history of messages that can be loaded in on startup. 
+-- What if we want to drop out xmtp and go matrix as the communication layer   <- don't worry about this will make code harder to read. 
+
+
+*/ 
+
+
+
+//import Web3 from 'web3';
+//const web3 = new Web3(/* PROVIDER*/);  // downside vs ethers b/c we need to specify a provider before signing ...
+// getting stupid frustrated with this feeling like i should just host the key store locally and interface with it over http and in that case we could use web3.py to make it the same object entirely  
+  //TODO try it out see if we can just put null in web3 provider and sign things 
+
+
+
+/*
+ // TODO   change to wallet.fromEncryptedJson (  
+*/
+
 
 //CONFIG
-const XMTP_LISTENER_PRIVATEKEY=process.env.XMTP_LISTENER_PRIVATEKEY ||  config.XMTP_LISTENER_PRIVATEKEY;const XMTP_LISTENER_PUB="0xf8d34981a0258898893f516e7BB094b8433A9680";
+const XMTP_LISTENER_PRIVATEKEY=process.env.XMTP_LISTENER_PRIVATEKEY ||  config.XMTP_LISTENER_PRIVATEKEY;
+if(XMTP_LISTENER_PRIVATEKEY.length<10){
+  console.log("Faital error,  XMTP_LISTENER_PRIVATEKEY not set.  Can be set as env variable via export in cmd or set in config.js ")
+  process.exit();
+
+}
+const XMTP_LISTENER_PUB="0xf8d34981a0258898893f516e7BB094b8433A9680";
 
 //const XMTP_ACCOUNT_MANAGER_PUB="0xA00c50A0A97D7b4d03e7Ff4A8C1badf61d72816f"; //RWO doxed wallet 
 const XMTP_ACCOUNT_MANAGER_PUB="0xbE098Fb26d36dA25c960413683b210e887f80853"; //random other wallet 
@@ -47,10 +87,14 @@ const first_portfolioWallets=portfolioWallets[0];
 
 
 
+//TODO make this an input from the user, or have a big library preconfigured 
+const provider = new ethers.providers.JsonRpcProvider("https://sepolia.infura.io/v3/febe4f1122fd42b3ad2f55b0264ce3bf")
+
+
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 
-function prep_tx(tx){
+async function prep_tx(tx){
   if(tx.gas){
     tx.gasLimit = tx.gas;
     delete tx.gas;
@@ -68,9 +112,11 @@ function prep_tx(tx){
     tx.chainId=tx.chain_id;
     delete tx.chain_id;
   }
-  if( tx.chainId.includes("eip155:"))
+  if(tx.hasOwnProperty('chainId') && tx.chainId.includes("eip155:"))
     tx.chainId=tx.chainId.replace("eip155:","")
-  
+  if( !tx.hasOwnProperty('nonce') ){
+    tx.nonce=   await provider.getTransactionCount(tx.from, "pending")
+  }
   tx.type=2;
   return(tx)
 }
@@ -84,8 +130,6 @@ const x_listenerWallet = new ethers.Wallet(XMTP_LISTENER_PRIVATEKEY )
 const x_client = await xmtp.Client.create(x_listenerWallet, { env: "dev" });
 
 let manager_on_xmtp= await x_client.canMessage(XMTP_ACCOUNT_MANAGER_PUB);
-
-
 
 
 
@@ -185,7 +229,7 @@ for await (const message of await conversation.streamMessages()) {
       switch (msg_js.method) {
         case 'sign_eth':
           let tx_js = msg_js.body  
-          const clean_tx = prep_tx(tx_js);
+          const clean_tx = await prep_tx(tx_js);
           if(check_transaction_schema(clean_tx)){
               if( portfolioWallets_dict[msg_js.body.from]){
               const signedTX= await portfolioWallets_dict[msg_js.body.from].signTransaction(clean_tx);
