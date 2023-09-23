@@ -4,39 +4,11 @@ import * as xmtp  from "@xmtp/xmtp-js";
 import * as fs from 'fs';
 import * as os from 'os';
 import * as config from './config.js';
-
 import * as chainlist from 'eth-chainlist';  //or https://www.npmjs.com/package/evm-chains //import * as evnChains from 'evm-chains';
 
 
-
-/*   
-
-
-
-//Next TODO   build out   provider methods, provider options changing, option to include provider on every message. 
-
--- To define which wallet should sign something we should be able to just take the from:  address in the transaction. 
--- Design,  single thread while loop listening to new messages .
--- (On startup should check if in recent history there where some transactions that didn't get signed and then sign them) <- na who cares 
-The signed transaction should be sent back as a reply or a JSON object that contains the original request metadata with message ID etc. 
--- Let a user login to the conversation to watch interactions. Via convers app 
--- In the loop that reads messages we can also watch for messages to control the system. Like adding new account managers.  Or allowing 
-    ++ Alt option would be to put the control in another channel.  But then we gotta have multi threading....  and multi account config.. ( what happens if the process gets blocked by something... well it can't get blocked. Settings chagnes must happen immediatly can't require multiple steps. )
-
-? Does this history of messages actually matter ?  No not really the operator can check if it went threw and manually have retry code on the outside. 
--- What if we want to drop out xmtp and go http only again  <- this could be done pretty easily by having an http request to local host messaging an http server that does everything OOOOOR even better would be the abstract all the work into a class with functions like New message arrived, And history of messages that can be loaded in on startup. 
--- What if we want to drop out xmtp and go matrix as the communication layer   <- don't worry about this will make code harder to read. 
-
-
-*/ 
-
-
-
-//import Web3 from 'web3';
-//const web3 = new Web3(/* PROVIDER*/);  // downside vs ethers b/c we need to specify a provider before signing ...
-// getting stupid frustrated with this feeling like i should just host the key store locally and interface with it over http and in that case we could use web3.py to make it the same object entirely  
-  //TODO try it out see if we can just put null in web3 provider and sign things 
-
+ 
+ 
 
 
 /*
