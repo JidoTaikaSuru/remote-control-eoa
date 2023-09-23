@@ -56,18 +56,31 @@ export const onTransaction: OnTransactionHandler = async ({ transaction, chainId
   console.log('Chain id:', chainId),
   console.log('Transaction origin:', transactionOrigin)
 
+  const accountAddress = transaction.from as string
+
   const persistedData = await snap.request({
     method: 'snap_manageState',
     params: { operation: 'get' }
-  }) || { transactions: [] } as Record<string, any>
+  }) || { transactions: {} } as Record<string, any>
 
   console.log('Persisted data:', persistedData)
 
-  persistedData.transactions.push({
-    chainId,
-    transactionOrigin,
-    ...transaction,
+  const transactionCount = await ethereum.request({
+    method: 'eth_getTransactionCount',
+    params: [accountAddress, 'latest']
   })
+
+  console.log('Transaction count:', transactionCount)
+
+  const transactionHistoryForAccount = persistedData.transactions[accountAddress] || {}
+  transactionHistoryForAccount[chainId] = {
+    ...transactionHistoryForAccount[chainId],
+    [transactionCount as string]: {
+      transactionOrigin,
+      ...transaction,
+    }
+  }
+  persistedData.transactions[accountAddress] = transactionHistoryForAccount
 
   await snap.request({
     method: 'snap_manageState',
