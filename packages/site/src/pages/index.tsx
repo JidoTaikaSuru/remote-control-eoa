@@ -20,6 +20,7 @@ import {
   GetSnapStoredDataButton,
 } from '../components';
 import { defaultSnapOrigin } from '../config';
+import { format } from 'date-fns';
 
 const Container = styled.div`
   display: flex;
@@ -143,38 +144,38 @@ const Index = () => {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
-  }
+  };
 
   const handleGetSnapStoredData = async () => {
     try {
       const data = await getSnapStoredData();
-      console.log('Stored data:', data)
+      console.log('Stored data:', data);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
-  }
+  };
 
   const handleDownloadSnapStoredData = async () => {
     try {
       const data = await getSnapStoredData();
-      const blob = new Blob([JSON.stringify(data)])
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute(
-        'download',
-        'transactions.json'
-      )
-      document.body.appendChild(link)
-      link.click()
-      link.parentElement?.removeChild(link)
+      const blob = new Blob([JSON.stringify(data)]);
+      const url = window.URL.createObjectURL(blob);
+
+      const now = new Date();
+      const filename = `transactions-${format(now, 'yyyyMMddHHmmss')}.json`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentElement?.removeChild(link);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
-  }
-
+  };
 
   return (
     <Container>
@@ -255,7 +256,8 @@ const Index = () => {
         <Card
           content={{
             title: 'Clear transction history',
-            description: 'Clear the MetaMask Snap of the recorded transaction history.',
+            description:
+              'Clear the MetaMask Snap of the recorded transaction history.',
             button: (
               <ClearHistoryButton
                 onClick={handleClearHistoryClick}
