@@ -76,7 +76,7 @@ export const onTransaction: OnTransactionHandler = async ({
 
   const transactionCount = await ethereum.request({
     method: 'eth_getTransactionCount',
-    params: [accountAddress, 'latest'],
+    params: [accountAddress, 'pending'],
   });
 
   console.log('Transaction count:', transactionCount);
@@ -85,7 +85,7 @@ export const onTransaction: OnTransactionHandler = async ({
     persistedData.transactions[accountAddress] || {};
   transactionHistoryForAccount[chainId] = {
     ...transactionHistoryForAccount[chainId],
-    [transactionCount as string]: {
+    [transactionCount as number]: {
       transactionOrigin,
       ...transaction,
     },
