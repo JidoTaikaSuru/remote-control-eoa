@@ -3,6 +3,7 @@ import * as ethers  from  "ethers";
 import * as xmtp  from "@xmtp/xmtp-js";
 import * as fs from 'fs';
 import * as os from 'os';
+import * as config from './config.js';
 
 
 //CONFIG

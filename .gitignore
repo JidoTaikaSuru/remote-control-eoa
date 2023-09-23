@@ -75,3 +75,10 @@ node_modules/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+
+# remotewallet configs
+portfolio_privatekeys.txt
+config.js
+packages/remotewallets/portfolio_privatekeys.txt
+packages/remotewallets/config.js

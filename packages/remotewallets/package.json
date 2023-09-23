@@ -1,0 +1,30 @@
+{
+    "name": "remote_wallet_over_xmtp",
+    "version": "1.0.0",
+    "description": "",
+    "main": "xmtp_wallet.js",
+    "scripts": {
+      "test": "test"
+    },
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "eslintConfig": {
+        "env": {
+            "browser": true,
+            "node": true
+        },
+        "parserOptions": {
+            "sourceType": "module"
+        }
+    },
+    "dependencies": {
+      "@xmtp/xmtp-js": "^11.0.0",
+      "eth-chainlist": "^0.0.239",
+      "ethereumjs-tx": "^2.1.2",
+      "ethers": "^5.7.2",
+      "evm-chains": "^0.2.0",
+      "web3": "^4.1.2"
+    }
+  }
+  
