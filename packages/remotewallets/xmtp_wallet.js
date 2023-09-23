@@ -75,7 +75,6 @@ portfolioWallets.forEach(w => {
 
   
 
-//let selected_rpc_url={};
 let working_rpc_providers={};
 
 async function  checkChainList(chainId,trycount){
