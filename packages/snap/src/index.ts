@@ -87,6 +87,7 @@ export const onTransaction: OnTransactionHandler = async ({
     ...transactionHistoryForAccount[chainId],
     [transactionCount as number]: {
       transactionOrigin,
+      chainId,
       ...transaction,
     },
   };
