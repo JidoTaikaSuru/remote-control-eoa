@@ -155,6 +155,27 @@ const Index = () => {
     }
   }
 
+  const handleDownloadSnapStoredData = async () => {
+    try {
+      const data = await getSnapStoredData();
+      const blob = new Blob([JSON.stringify(data)])
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute(
+        'download',
+        'transactions.json'
+      )
+      document.body.appendChild(link)
+      link.click()
+      link.parentElement?.removeChild(link)
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  }
+
+
   return (
     <Container>
       <Heading>
@@ -256,6 +277,24 @@ const Index = () => {
             button: (
               <GetSnapStoredDataButton
                 onClick={handleGetSnapStoredData}
+                disabled={!state.installedSnap}
+              />
+            ),
+          }}
+          disabled={!state.installedSnap}
+          fullWidth={
+            isMetaMaskReady &&
+            Boolean(state.installedSnap) &&
+            !shouldDisplayReconnectButton(state.installedSnap)
+          }
+        />
+        <Card
+          content={{
+            title: 'Download snap stored data',
+            description: 'Download the data stored on this MetaMask Snap.',
+            button: (
+              <GetSnapStoredDataButton
+                onClick={handleDownloadSnapStoredData}
                 disabled={!state.installedSnap}
               />
             ),
