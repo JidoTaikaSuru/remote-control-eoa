@@ -60,9 +60,11 @@ function prep_tx(tx){
     tx.maxPriorityFeePerGas=tx.max_priority_fee_per_gas;
     delete tx.max_priority_fee_per_gas;
   }
+  /*
   if(tx.chain_id){
     delete tx.chain_id;
   }
+  */
   tx.type=2;
 return(tx)
 }
@@ -188,12 +190,21 @@ for await (const message of await conversation.streamMessages()) {
           let tx_js = msg_js.body  
           const clean_tx = prep_tx(tx_js);
           if(check_transaction_schema(clean_tx)){
-              const signedTX= await first_portfolioWallets.signTransaction(clean_tx);
+              if( portfolioWallets_dict[msg_js.body.from]){
+              const signedTX= await portfolioWallets_dict[msg_js.body.from].signTransaction(clean_tx);
+              //const signedTX= await first_portfolioWallets.signTransaction(clean_tx);
 
               let reply = std_out_js;
               reply.method="reply_"+msg_js.method;
               reply.signed=signedTX;
               await xSendUtil(conversation,JSON.stringify(reply));
+              }
+              else {
+                const erstr2=msg_js.body.from+"wallet not under managment";
+                console.log(erstr2);
+                await xSendUtil(conversation,erstr2);
+                continue;
+              }
           }
           else{
             await xSendUtil(conversation,"Not Transaction Format");
