@@ -1,8 +1,10 @@
+import './utils/polyfill';
 import { createContext, FunctionComponent, ReactNode, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { getThemePreference, setLocalStorage } from './utils';
 import { dark, light } from './config/theme';
 import { MetaMaskProvider } from './hooks';
+import { XMTPProvider } from '@xmtp/react-sdk';
 
 export type RootProps = {
   children: ReactNode;
@@ -25,7 +27,9 @@ export const Root: FunctionComponent<RootProps> = ({ children }) => {
   return (
     <ToggleThemeContext.Provider value={toggleTheme}>
       <ThemeProvider theme={darkTheme ? dark : light}>
-        <MetaMaskProvider>{children}</MetaMaskProvider>
+        <MetaMaskProvider>
+          <XMTPProvider>{children}</XMTPProvider>
+        </MetaMaskProvider>
       </ThemeProvider>
     </ToggleThemeContext.Provider>
   );

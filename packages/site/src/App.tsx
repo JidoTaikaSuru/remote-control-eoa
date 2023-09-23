@@ -20,6 +20,10 @@ export type AppProps = {
 export const App: FunctionComponent<AppProps> = ({ children }) => {
   const toggleTheme = useContext(ToggleThemeContext);
 
+  if (typeof window !== 'undefined') {
+    window.Buffer = window.Buffer ?? Buffer;
+  }
+
   return (
     <>
       <GlobalStyle />
