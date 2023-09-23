@@ -64,3 +64,18 @@ export const sendHello = async () => {
 };
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');
+
+export const sendClearHistory = async () => {
+  await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: { snapId: defaultSnapOrigin, request: { method: 'clearHistory' } },
+  });
+};
+
+export const getSnapStoredData = async () => {
+  const data = await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: { snapId: defaultSnapOrigin, request: { method: 'getStoredData' } },
+  });
+  return data;
+};
