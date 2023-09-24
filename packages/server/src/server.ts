@@ -44,7 +44,7 @@ const run = async () => {
         break;
 
       default:
-        console.log('Unknown merror type');
+        console.log('Unknown message type');
         break;
     }
   }
