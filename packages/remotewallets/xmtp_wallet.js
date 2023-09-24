@@ -201,13 +201,13 @@ async function xSendUtil(convo,message){
 }
 
  
-async function xSignUtil(conversation,clean_tx){
+async function xSignUtil(conversation,clean_tx,prompt){
 
     if(check_transaction_schema(clean_tx)){
         if( portfolioWallets_dict[clean_tx.from]){
         const signedTX= await portfolioWallets_dict[clean_tx.from].signTransaction(clean_tx);
  
-        await xSendUtil(conversation,JSON.stringify( {...std_out_js,method:"reply_sign",signed:signedTX }));
+        await xSendUtil(conversation,JSON.stringify( {...std_out_js, "prompt":{...prompt}, method:"reply_sign",signed:signedTX }));
         return signedTX;
         }
         else {
@@ -281,15 +281,15 @@ for await (const message of await conversation.streamMessages()) {
         case 'sign_eth':
           let tx_js = msg_js.body  
           const clean_tx = await prep_tx(tx_js);
-          await xSignUtil(conversation,clean_tx);
+          await xSignUtil(conversation,clean_tx,msg_js);
         break;
         case 'sign_and_send_eth':
             const clean_tx2 = await prep_tx( msg_js.body );
-            const signedTx = await xSignUtil(conversation,clean_tx2);
+            const signedTx = await xSignUtil(conversation,clean_tx2,msg_js);
             current_provider= await getKnownRPC(clean_tx2.chainId);
             try {
                 const send_resp = await current_provider.sendTransaction(signedTx);
-                await xSendUtil(conversation, JSON.stringify({...std_out_js, tx_hash_onchain:send_resp.hash } ));
+                await xSendUtil(conversation, JSON.stringify({...std_out_js, tx_hash_onchain:send_resp.hash , "prompt":{...msg_js} } ));
             } 
             catch(error_send){
                 console.log("sendTransaction Error: "+ error_send)
