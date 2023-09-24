@@ -60,7 +60,7 @@ export default function AccountStatus({
           Transaction #{txNum} accepted, with hash {txHash}
         </p>
       )}
-      {status === 'failed' && <p>Transaction failed</p>}
+      {status === 'failed' && <p>Transaction failed for {address} failed</p>}
     </div>
   );
 }

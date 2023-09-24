@@ -159,8 +159,8 @@ export default function AccountManagement() {
 
   return (
     <div>
-      <p>Hello, management!</p>
-      <p>{isMetaMaskReady ? 'Hello Snap' : 'Snap is not available'}</p>
+      <p>Semi-automatic Account Management</p>
+      <p>{isMetaMaskReady ? 'Snap is available' : 'Snap is not available'}</p>
       <p>
         {canMessageServer
           ? 'Can communicate with remote wallets server'
