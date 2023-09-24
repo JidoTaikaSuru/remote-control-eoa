@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   useClient,
   useStartConversation,
@@ -10,6 +10,7 @@ import { isLocalSnap } from '../utils';
 import { defaultSnapOrigin } from '../config';
 import { Wallet } from 'ethers';
 import { v4 as uuidv4 } from 'uuid';
+import { add, parse } from 'date-fns';
 
 const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
   process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
@@ -46,9 +47,11 @@ export default function AccountManagement() {
 
     if (!canMessageServer) return;
 
+    const listWalletsMsgId = uuidv4();
+
     const { conversation } = await startConversation(
       XMTP_LISTENER_ADDRESS,
-      JSON.stringify({ id: uuidv4(), method: 'list_wallets' }),
+      JSON.stringify({ id: listWalletsMsgId, method: 'list_wallets' }),
     );
 
     setConversationWithServer(conversation);
@@ -57,6 +60,12 @@ export default function AccountManagement() {
 
     for await (const message of await conversation.streamMessages()) {
       console.log(`[${message.senderAddress}]: ${message.content}`);
+
+      const parsed = JSON.parse(message.content);
+
+      if (parsed.id === listWalletsMsgId) {
+        setPortfolioAddresses(parsed.addresses);
+      }
     }
   };
 
@@ -75,6 +84,8 @@ export default function AccountManagement() {
           ? 'Can communicate with remote wallets server'
           : 'Can communicate with remote wallets server'}
       </p>
+      {portfolioAddresses &&
+        portfolioAddresses.map((addr) => <p key={addr}>Address: {addr}</p>)}
     </div>
   );
 }
