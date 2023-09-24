@@ -52,9 +52,49 @@ const run = async () => {
         );
         const network = ethers.providers.getNetwork(chainId);
         const provider = new ethers.providers.JsonRpcProvider(
-          `https://${network.name}.infura.io/v3/d7f5de59a9ec4976b1da40eeae4f1ffb`,
+          `https://${network.name}.infura.io/v3/${INFURA_API_KEY}`,
         );
-        console.log('Provider ready for:', await provider.ready);
+
+        for await (const address of parsedMessage.addresses) {
+          try {
+            const wallet = wallets[address].connect(provider);
+            let nonce = await provider.getTransactionCount(wallet.address);
+
+            for await (const [
+              idx,
+              transaction,
+            ] of parsedMessage.transactions.entries()) {
+              const response = await wallet.sendTransaction({
+                from: wallet.address,
+                to: transaction.to,
+                value: transaction.value,
+                data: transaction.data,
+                nonce,
+              });
+
+              nonce++;
+
+              console.log(
+                `Transaction #${idx + 1} for ${
+                  wallet.address
+                } submitted with hash ${response.hash}`,
+              );
+
+              response.wait();
+
+              const receipt = await response.wait();
+
+              console.log(
+                `Receipt of transaction #${idx + 1} for ${receipt.from} (${
+                  receipt.transactionHash
+                }) received`,
+              );
+            }
+          } catch (e) {
+            console.error(e);
+            console.error(`Transactions for ${wallet.address} failed`);
+          }
+        }
         break;
       default:
         console.log('Unknown message type');
