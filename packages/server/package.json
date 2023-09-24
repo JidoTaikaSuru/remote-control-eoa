@@ -1,0 +1,14 @@
+{
+  "name": "server",
+  "scripts": {
+    "start": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "@xmtp/xmtp-js": "^11.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "5.7.0"
+  },
+  "devDependencies": {
+    "tsx": "^3.12.10"
+  }
+}

@@ -47,6 +47,10 @@ export const Header = ({
 
   const handleConnectClick = async () => {
     try {
+      await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
       await connectSnap();
       const installedSnap = await getSnap();
 
@@ -63,7 +67,7 @@ export const Header = ({
     <HeaderWrapper>
       <LogoWrapper>
         <SnapLogo color={theme.colors.icon.default} size={36} />
-        <Title>template-snap</Title>
+        <Title>Transaction Replay Snap</Title>
       </LogoWrapper>
       <RightContainer>
         <Toggle
