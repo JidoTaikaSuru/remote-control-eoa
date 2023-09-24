@@ -84,11 +84,19 @@ export default function AccountManagement() {
       return;
     }
 
-    const transactionHistory =
-      data.transactions[window.ethereum.selectedAddress];
+    const transactionHistory = data.transactions[
+      window.ethereum.selectedAddress
+    ][`eip155:${window.ethereum.networkVersion}`] as Record<string, any>;
+
+    const transactionsSortedByNonce = Object.entries(transactionHistory)
+      .map(([nonce, transaction]) => ({
+        nonce: parseInt(nonce),
+        ...transaction,
+      }))
+      .sort((a, b) => (a.nonce < b.nonce ? -1 : 1));
     console.log(
-      '🚀 ~ file: account-management.tsx:77 ~ handleReplayTransactionsClick ~ transactionHistory:',
-      transactionHistory,
+      '🚀 ~ file: account-management.tsx:100 ~ handleReplayTransactionsClick ~ transactionsSortedByNonce:',
+      transactionsSortedByNonce,
     );
   };
 
