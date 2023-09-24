@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   useClient,
   useConversations,
@@ -14,13 +14,16 @@ const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
   process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
 );
 
+const XMTP_LISTENER_ADDRESS = process.env.GATSBY_XMTP_LISTENER_PUB || '';
+
 export default function AccountManagement() {
   const [state, dispatch] = useContext(MetaMaskContext);
 
   const { client, initialize } = useClient();
   const { conversations } = useConversations();
   const { startConversation } = useStartConversation();
-  const { canMessage } = useCanMessage();
+
+  const [canMessageServer, setCanMessageServer] = useState<boolean>(false);
 
   const isMetaMaskReady = isLocalSnap(defaultSnapOrigin)
     ? state.isFlask
@@ -36,26 +39,19 @@ export default function AccountManagement() {
     if (!client) return;
 
     client
-      .canMessage('0x3F11b27F323b62B159D2642964fa27C46C841897')
-      .then((canMessage) => console.log('Can message (#1)?', canMessage));
+      .canMessage(XMTP_LISTENER_ADDRESS)
+      .then((canMessageServer) => setCanMessageServer(canMessageServer));
   }, [client]);
-
-  useEffect(() => {
-    console.log('Conversations:', conversations);
-  }, [conversations]);
-
-  useEffect(() => {
-    if (!client) return;
-
-    canMessage('0x3F11b27F323b62B159D2642964fa27C46C841897').then(
-      (canMessage) => console.log('Can message (#2)?', canMessage),
-    );
-  }, [client, canMessage]);
 
   return (
     <div>
       <p>Hello, management!</p>
-      <p>{isMetaMaskReady ? 'Hello Snap' : 'Boo this man!'}</p>
+      <p>{isMetaMaskReady ? 'Hello Snap' : 'Snap is not available'}</p>
+      <p>
+        {canMessageServer
+          ? 'Can communicate with remote wallets server'
+          : 'Can communicate with remote wallets server'}
+      </p>
     </div>
   );
 }
