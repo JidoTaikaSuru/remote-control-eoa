@@ -1,4 +1,4 @@
-# POC Of a Remote Control EOA for gas efficient flexible for funds management teams with varying levels of permission.
+# TechDemo for a Remote Control EOA for gas efficient flexible for funds management teams with varying levels of permission. Using XMTP and Metamask Snaps
 
  [Slides Version](https://docs.google.com/presentation/d/1vVlIzecuM3Ygytb4Ri8u-TUexXOBdKxedEF2qH66qyA/edit?usp=sharing).
 
