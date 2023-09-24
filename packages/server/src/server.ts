@@ -15,9 +15,10 @@ const privateKeys = readFileSync('portfolio_private_keys.txt', {
   .filter(Boolean);
 
 const wallets = Object.fromEntries(
-  privateKeys
-    .map((privateKey) => new Wallet(privateKey))
-    .map((wallet) => [wallet.address, wallet]),
+  privateKeys.map((privateKey) => {
+    const wallet = new Wallet(privateKey);
+    return [wallet.address, wallet];
+  }),
 );
 
 const run = async () => {
