@@ -3,7 +3,9 @@
  [Slides Version](https://docs.google.com/presentation/d/1vVlIzecuM3Ygytb4Ri8u-TUexXOBdKxedEF2qH66qyA/edit?usp=sharing).
 
 
+
 * Accidentally got deleted in a merge failure but we build a demo for technical users also that explains the system well,  see this past commit [https://github.com/JidoTaikaSuru/remote-control-eoa/blob/afbdc932755d7282d4f5b61d57358d8a862153d1/packages/remotewallets/example_account_manager_node_script.js](https://github.com/JidoTaikaSuru/remote-control-eoa/blob/afbdc932755d7282d4f5b61d57358d8a862153d1/packages/remotewallets/example_account_manager_node_script.js)
+* Video demoing the Snaps recording of transactions sending over XMTP to server which then replays it on protected wallets [https://vimeo.com/867649913](https://vimeo.com/867649913)
  
 
 ## The Problem
