@@ -159,7 +159,6 @@ export default function AccountManagement() {
 
   return (
     <div>
-      <p>Semi-automatic Account Management</p>
       <p>{isMetaMaskReady ? 'Snap is available' : 'Snap is not available'}</p>
       <p>
         {canMessageServer
