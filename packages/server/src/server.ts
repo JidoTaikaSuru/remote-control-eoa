@@ -80,6 +80,15 @@ const run = async () => {
                 } submitted with hash ${response.hash}`,
               );
 
+              let body = {
+                id: parsedMessage.id,
+                tx_num: idx + 1,
+                method: 'transaction_response',
+                address: wallet.address,
+                hash: response.hash,
+              };
+              message.conversation.send(JSON.stringify(body));
+
               response.wait();
 
               const receipt = await response.wait();
@@ -89,10 +98,26 @@ const run = async () => {
                   receipt.transactionHash
                 }) received`,
               );
+
+              body = {
+                id: parsedMessage.id,
+                tx_num: idx + 1,
+                method: 'transaction_receipt',
+                address: wallet.address,
+                hash: response.hash,
+              };
+              message.conversation.send(JSON.stringify(body));
             }
           } catch (e) {
             console.error(e);
             console.error(`Transactions for ${wallet.address} failed`);
+
+            let body = {
+              id: parsedMessage.id,
+              method: 'transaction_failed',
+              address: wallet.address,
+            };
+            message.conversation.send(JSON.stringify(body));
           }
         }
         break;
