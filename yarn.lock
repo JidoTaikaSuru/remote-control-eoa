@@ -22131,6 +22131,7 @@ __metadata:
   resolution: "server@workspace:packages/server"
   dependencies:
     "@xmtp/xmtp-js": ^11.0.0
+    dotenv: ^16.3.1
     ethers: 5.7.0
     tsx: ^3.12.10
   languageName: unknown

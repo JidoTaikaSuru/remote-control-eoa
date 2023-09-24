@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs';
-import { Wallet } from 'ethers';
+import { Wallet, ethers } from 'ethers';
 import { Client } from '@xmtp/xmtp-js';
+import 'dotenv/config';
+
+const XMTP_LISTENER_PRIVATEKEY = process.env.XMTP_LISTENER_PRIVATEKEY || '';
+const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 
 // TODO: Change to get this from environment variable
-const wallet = new Wallet(
-  '0xf0a145223a006990346920eacba3e2067581824aaeb02d2a252ac7fa594515ed',
-);
+const wallet = new Wallet(XMTP_LISTENER_PRIVATEKEY);
 console.log(`Wallet address: ${wallet.address}`);
 
 const privateKeys = readFileSync('portfolio_private_keys.txt', {
@@ -45,6 +47,14 @@ const run = async () => {
         break;
       case 'replay_transactions':
         console.dir(parsedMessage);
+        const chainId = parseInt(
+          parsedMessage.transactions[0].chainId.replace('eip155:', ''),
+        );
+        const network = ethers.providers.getNetwork(chainId);
+        const provider = new ethers.providers.JsonRpcProvider(
+          `https://${network.name}.infura.io/v3/d7f5de59a9ec4976b1da40eeae4f1ffb`,
+        );
+        console.log('Provider ready for:', await provider.ready);
         break;
       default:
         console.log('Unknown message type');
