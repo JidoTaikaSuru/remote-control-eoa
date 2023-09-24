@@ -10,6 +10,7 @@ import { getSnapStoredData, isLocalSnap } from '../utils';
 import { defaultSnapOrigin } from '../config';
 import { Wallet } from 'ethers';
 import { v4 as uuidv4 } from 'uuid';
+import AccountStatus from '../components/AccountStatus';
 
 const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
   process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
@@ -127,10 +128,12 @@ export default function AccountManagement() {
       </p>
       {portfolioAddresses && (
         <>
-          {portfolioAddresses.map((addr, idx) => (
-            <p key={addr}>
-              Address #{idx + 1}: {addr}
-            </p>
+          {portfolioAddresses.map((addr) => (
+            <AccountStatus
+              key={addr}
+              address={addr}
+              conversation={conversationWithServer}
+            />
           ))}
           <button onClick={handleReplayTransactionsClick}>
             Replay transactions
