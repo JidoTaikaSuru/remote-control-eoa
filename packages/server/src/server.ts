@@ -24,6 +24,7 @@ const run = async () => {
   const xmtp = await Client.create(wallet, { env: 'dev' });
 
   for await (const message of await xmtp.conversations.streamAllMessages()) {
+    // ignore messages sent from this address
     if (message.senderAddress === xmtp.address) continue;
 
     console.log(

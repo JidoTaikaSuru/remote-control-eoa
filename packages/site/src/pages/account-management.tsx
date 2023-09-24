@@ -59,6 +59,9 @@ export default function AccountManagement() {
     if (!conversation) return;
 
     for await (const message of await conversation.streamMessages()) {
+      // ignore messages sent from this address
+      if (message.senderAddress === client.address) continue;
+
       console.log(`[${message.senderAddress}]: ${message.content}`);
 
       const parsed = JSON.parse(message.content);
