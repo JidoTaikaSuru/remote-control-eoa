@@ -11,6 +11,9 @@ import { defaultSnapOrigin } from '../config';
 import { Wallet } from 'ethers';
 import { v4 as uuidv4 } from 'uuid';
 import AccountStatus from '../components/AccountStatus';
+import { format } from 'date-fns';
+import { MetamaskActions } from '../hooks';
+import { sendClearHistory } from '../utils';
 
 const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
   process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
@@ -90,14 +93,21 @@ export default function AccountManagement() {
       return;
     }
 
+    // VERY hacky temp fix because for some reason Polygon Mumbai gets recorded
+    // as eip155:13881 inside the snap but is 80001 from
+    // `window.ethereum.networkVersion
+    let chainId = `eip155:${window.ethereum.networkVersion}`;
+    if (chainId.endsWith('80001')) chainId = 'eip155:13881';
+
     const transactionHistory = data.transactions[
       window.ethereum.selectedAddress
-    ][`eip155:${window.ethereum.networkVersion}`] as Record<string, any>;
+    ][chainId] as Record<string, any>;
 
     const transactionsSortedByNonce = Object.entries(transactionHistory)
       .map(([nonce, transaction]) => ({
         nonce: parseInt(nonce),
         ...transaction,
+        chainId,
       }))
       .sort((a, b) => (a.nonce < b.nonce ? -1 : 1));
 
@@ -109,6 +119,36 @@ export default function AccountManagement() {
     };
 
     conversationWithServer.send(JSON.stringify(payload));
+  };
+
+  const handleDownloadSnapStoredData = async () => {
+    try {
+      const data = await getSnapStoredData();
+      const blob = new Blob([JSON.stringify(data)]);
+      const url = window.URL.createObjectURL(blob);
+
+      const now = new Date();
+      const filename = `transactions-${format(now, 'yyyyMMddHHmmss')}.json`;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentElement?.removeChild(link);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const handleClearHistoryClick = async () => {
+    try {
+      await sendClearHistory();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
   };
 
   useEffect(() => {
@@ -137,6 +177,12 @@ export default function AccountManagement() {
           ))}
           <button onClick={handleReplayTransactionsClick}>
             Replay transactions
+          </button>
+          <button onClick={handleDownloadSnapStoredData}>
+            Download transaction history
+          </button>
+          <button onClick={handleClearHistoryClick}>
+            Clear transaction history
           </button>
         </>
       )}
