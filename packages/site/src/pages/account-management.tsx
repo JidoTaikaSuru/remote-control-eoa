@@ -6,11 +6,10 @@ import {
   Conversation,
 } from '@xmtp/react-sdk';
 import { MetaMaskContext } from '../hooks';
-import { isLocalSnap } from '../utils';
+import { getSnapStoredData, isLocalSnap } from '../utils';
 import { defaultSnapOrigin } from '../config';
 import { Wallet } from 'ethers';
 import { v4 as uuidv4 } from 'uuid';
-import { add, parse } from 'date-fns';
 
 const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
   process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
@@ -72,6 +71,14 @@ export default function AccountManagement() {
     }
   };
 
+  const handleReplayTransactionsClick = async () => {
+    const data = await getSnapStoredData();
+    console.log(
+      '🚀 ~ file: account-management.tsx:77 ~ handleReplayTransactionsClick ~ data:',
+      data,
+    );
+  };
+
   useEffect(() => {
     if (!client) return;
 
@@ -87,8 +94,18 @@ export default function AccountManagement() {
           ? 'Can communicate with remote wallets server'
           : 'Can communicate with remote wallets server'}
       </p>
-      {portfolioAddresses &&
-        portfolioAddresses.map((addr) => <p key={addr}>Address: {addr}</p>)}
+      {portfolioAddresses && (
+        <>
+          {portfolioAddresses.map((addr, idx) => (
+            <p key={addr}>
+              Address #{idx + 1}: {addr}
+            </p>
+          ))}
+          <button onClick={handleReplayTransactionsClick}>
+            Replay transactions
+          </button>
+        </>
+      )}
     </div>
   );
 }
