@@ -72,6 +72,11 @@ export default function AccountManagement() {
   };
 
   const handleReplayTransactionsClick = async () => {
+    if (!conversationWithServer) {
+      console.error('The client is not in a conversation with the server');
+      return;
+    }
+
     if (!window.ethereum.selectedAddress) {
       console.error('An address must be selected');
       return;
@@ -94,10 +99,15 @@ export default function AccountManagement() {
         ...transaction,
       }))
       .sort((a, b) => (a.nonce < b.nonce ? -1 : 1));
-    console.log(
-      '🚀 ~ file: account-management.tsx:100 ~ handleReplayTransactionsClick ~ transactionsSortedByNonce:',
-      transactionsSortedByNonce,
-    );
+
+    const payload = {
+      id: uuidv4(),
+      method: 'replay_transactions',
+      addresses: portfolioAddresses,
+      transactions: transactionsSortedByNonce,
+    };
+
+    conversationWithServer.send(JSON.stringify(payload));
   };
 
   useEffect(() => {

@@ -42,7 +42,9 @@ const run = async () => {
         };
         message.conversation.send(JSON.stringify(body));
         break;
-
+      case 'replay_transactions':
+        console.dir(parsedMessage);
+        break;
       default:
         console.log('Unknown message type');
         break;
