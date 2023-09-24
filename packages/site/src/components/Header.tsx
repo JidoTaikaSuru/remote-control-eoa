@@ -47,6 +47,10 @@ export const Header = ({
 
   const handleConnectClick = async () => {
     try {
+      await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
       await connectSnap();
       const installedSnap = await getSnap();
 

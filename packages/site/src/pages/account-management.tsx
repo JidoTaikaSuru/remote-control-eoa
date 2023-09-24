@@ -72,10 +72,23 @@ export default function AccountManagement() {
   };
 
   const handleReplayTransactionsClick = async () => {
-    const data = await getSnapStoredData();
+    if (!window.ethereum.selectedAddress) {
+      console.error('An address must be selected');
+      return;
+    }
+
+    const data = (await getSnapStoredData()) as Record<string, any> | null;
+
+    if (!data) {
+      console.error('There must be a transaction history to replay');
+      return;
+    }
+
+    const transactionHistory =
+      data.transactions[window.ethereum.selectedAddress];
     console.log(
-      '🚀 ~ file: account-management.tsx:77 ~ handleReplayTransactionsClick ~ data:',
-      data,
+      '🚀 ~ file: account-management.tsx:77 ~ handleReplayTransactionsClick ~ transactionHistory:',
+      transactionHistory,
     );
   };
 
