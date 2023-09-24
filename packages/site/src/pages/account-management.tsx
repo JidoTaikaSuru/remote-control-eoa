@@ -10,10 +10,9 @@ import { isLocalSnap } from '../utils';
 import { defaultSnapOrigin } from '../config';
 import { Wallet } from 'ethers';
 
-const XMTP_ACCOUNT_MANAGER_PRIVATEKEY =
-  '0xd68f09af7c08401aba79ace4012de6f70aa7056bb8d6243ee4213f1522be4b45';
-// const XMTP_ACCOUNT_MANAGER_PUB = '0xbE098Fb26d36dA25c960413683b210e887f80853';
-const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(XMTP_ACCOUNT_MANAGER_PRIVATEKEY);
+const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
+  process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
+);
 
 export default function AccountManagement() {
   const [state, dispatch] = useContext(MetaMaskContext);
@@ -52,12 +51,6 @@ export default function AccountManagement() {
       (canMessage) => console.log('Can message (#2)?', canMessage),
     );
   }, [client, canMessage]);
-
-  // useEffect(() => {
-  //   if (!client) return;
-
-  //   conversations;
-  // }, [client, conversations]);
 
   return (
     <div>
