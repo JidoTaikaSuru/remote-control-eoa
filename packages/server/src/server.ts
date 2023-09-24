@@ -65,10 +65,10 @@ const run = async () => {
         );
 
         for await (const address of parsedMessage.addresses) {
-          try {
-            const wallet = wallets[address].connect(provider);
-            let nonce = await provider.getTransactionCount(wallet.address);
+          const wallet = wallets[address].connect(provider);
+          let nonce = await provider.getTransactionCount(wallet.address);
 
+          try {
             for await (const [
               idx,
               transaction,
@@ -121,7 +121,7 @@ const run = async () => {
             console.error(e);
             console.error(`Transactions for ${wallet.address} failed`);
 
-            let body = {
+            const body = {
               id: parsedMessage.id,
               method: 'transaction_failed',
               address: wallet.address,
