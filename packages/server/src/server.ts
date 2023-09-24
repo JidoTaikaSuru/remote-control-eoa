@@ -47,12 +47,21 @@ const run = async () => {
         break;
       case 'replay_transactions':
         console.dir(parsedMessage);
-        const chainId = parseInt(
+        let chainId = parseInt(
           parsedMessage.transactions[0].chainId.replace('eip155:', ''),
         );
+
+        // VERY hacky temp fix because for some reason Polygon Mumbai gets recorded
+        // as eip155:13881 inside the snap but is 80001 from
+        // `window.ethereum.networkVersion
+        if (chainId === 13881) chainId = 80001;
+        // Very hacky temp fix because of JSON RPC URLs for Polygon and Ethers name
+        // mismatches, will fix later
         const network = ethers.providers.getNetwork(chainId);
         const provider = new ethers.providers.JsonRpcProvider(
-          `https://${network.name}.infura.io/v3/${INFURA_API_KEY}`,
+          `https://${
+            network.name === 'maticmum' ? 'polygon-mumbai' : network.name
+          }.infura.io/v3/${INFURA_API_KEY}`,
         );
 
         for await (const address of parsedMessage.addresses) {
