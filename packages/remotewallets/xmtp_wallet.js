@@ -1,19 +1,23 @@
+ //DEPRICATED ? 
+// moved to /Users/rubenwolff/workspace/remote-control-eoa/packages/remotewallets 
+// and https://github.com/JidoTaikaSuru/remote-control-eoa/tree/remotew 
+
+//TODO make 3 slides
+//TODO  deal with metamask sending hexNumbers without telling us 
+ 
+
 import * as ethers  from  "ethers";
 //import * as TX from "ethereumjs-tx";
 import * as xmtp  from "@xmtp/xmtp-js";
 import * as fs from 'fs';
 import * as os from 'os';
 import * as config from './config.js';
+
 import * as chainlist from 'eth-chainlist';  //or https://www.npmjs.com/package/evm-chains //import * as evnChains from 'evm-chains';
 
 
- 
- 
 
-
-/*
- // TODO   change to wallet.fromEncryptedJson (  
-*/
+ 
 
 
 //CONFIG
