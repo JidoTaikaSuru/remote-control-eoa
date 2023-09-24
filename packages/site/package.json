@@ -34,7 +34,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-is": "^18.2.0",
-    "styled-components": "5.3.3"
+    "styled-components": "5.3.3",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^10.0.0",
@@ -50,6 +51,7 @@
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@types/styled-components": "^5.1.25",
+    "@types/uuid": "^9.0.4",
     "@typescript-eslint/eslint-plugin": "^5.33.0",
     "@typescript-eslint/parser": "^5.33.0",
     "cross-env": "^7.0.3",

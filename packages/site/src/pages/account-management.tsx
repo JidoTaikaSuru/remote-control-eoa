@@ -9,6 +9,7 @@ import { MetaMaskContext } from '../hooks';
 import { isLocalSnap } from '../utils';
 import { defaultSnapOrigin } from '../config';
 import { Wallet } from 'ethers';
+import { v4 as uuidv4 } from 'uuid';
 
 const XMTP_ACCOUNT_MANAGER_SIGNER = new Wallet(
   process.env.GATSBY_XMTP_ACCOUNT_MANAGER_PRIVATEKEY || '',
@@ -47,7 +48,7 @@ export default function AccountManagement() {
 
     const { conversation } = await startConversation(
       XMTP_LISTENER_ADDRESS,
-      JSON.stringify({ method: 'list_wallets' }),
+      JSON.stringify({ id: uuidv4(), method: 'list_wallets' }),
     );
 
     setConversationWithServer(conversation);

@@ -5,7 +5,7 @@
   "main": "xmtp_wallet.js",
   "scripts": {
     "test": "test",
-    "example":"example_account_manager_node_script.js"
+    "example": "example_account_manager_node_script.js"
   },
   "author": "",
   "license": "ISC",
